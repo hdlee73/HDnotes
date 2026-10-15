@@ -1,0 +1,17 @@
+.gradle/
+.idea/
+local.properties
+**/build/
+*.iml
+*.keystore
+*.jks
+*.p12
+*.pfx
+keystore.properties
+*.lineage
+lineage.bin
+.codex/
+
+# Verified HWP engine binaries are fetched before building.
+app/src/main/assets/hwp/rhwptopdf.umd.js
+app/src/main/assets/hwp/rhwptopdf.umd_bg.wasm
