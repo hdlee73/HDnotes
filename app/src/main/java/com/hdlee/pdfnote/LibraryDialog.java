@@ -333,7 +333,7 @@ final class LibraryDialog extends Dialog {
     private void longPressed(File file,View anchor){if(file.isDirectory())folderMenu(file,anchor);else{selectionMode=true;selected.add(file);refreshGrid();}}
     private String dayText(long time){Calendar now=Calendar.getInstance(),then=Calendar.getInstance();then.setTimeInMillis(time);return new SimpleDateFormat(now.get(Calendar.YEAR)==then.get(Calendar.YEAR)?"M월 d일":"yyyy년 M월 d일",Locale.KOREA).format(new Date(time));}
     private String dateText(File file){
-        long time=LibraryRepository.modified(activity,file);Calendar now=Calendar.getInstance(),then=Calendar.getInstance();then.setTimeInMillis(time);Date date=new Date(time);
+        long time=LibraryRepository.modifiedTime(activity,file);Calendar now=Calendar.getInstance(),then=Calendar.getInstance();then.setTimeInMillis(time);Date date=new Date(time);
         if(now.get(Calendar.YEAR)==then.get(Calendar.YEAR)&&now.get(Calendar.DAY_OF_YEAR)==then.get(Calendar.DAY_OF_YEAR))return new SimpleDateFormat("a h:mm",Locale.KOREA).format(date);
         if(now.get(Calendar.YEAR)==then.get(Calendar.YEAR))return new SimpleDateFormat("M월 d일",Locale.KOREA).format(date);return new SimpleDateFormat("yyyy년 M월 d일",Locale.KOREA).format(date);
     }
