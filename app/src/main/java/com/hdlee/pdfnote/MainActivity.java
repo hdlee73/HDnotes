@@ -3063,17 +3063,22 @@ public class MainActivity extends Activity implements PdfPageView.Listener {
             if(name.endsWith(".m4a"))return new File(recordingsDir(),name);
             if(name.endsWith(".mp4")){File d=new File(getFilesDir(),"videos");d.mkdirs();return new File(d,name);}return null;}
         @Override public void onActivity(String message){runOnUiThread(()->toast(message));}
+        @Override public String deviceName(){String m=Build.MODEL==null?"":Build.MODEL.trim();return m.isEmpty()?"Android":m;}
+        @Override public String deviceId(){String id=recentPrefs.getString("sync_device_id",null);if(id==null){id=UUID.randomUUID().toString();recentPrefs.edit().putString("sync_device_id",id).apply();}return id;}
+        @Override public String appVersion(){return BuildConfig.VERSION_NAME;}
     };
+    private android.net.wifi.WifiManager.MulticastLock syncMulticast;
     private void showDeviceSync(){
         if(deviceSync!=null)return;
         final DeviceSync sync=new DeviceSync(syncHost);final java.util.List<String> addresses=DeviceSync.localAddresses();
         try{sync.start();}catch(IOException error){toast("동기화를 시작할 수 없습니다: "+error.getMessage());return;}
         deviceSync=sync;getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        try{android.net.wifi.WifiManager wifi=(android.net.wifi.WifiManager)getApplicationContext().getSystemService(WIFI_SERVICE);if(wifi!=null){syncMulticast=wifi.createMulticastLock("hdnotes-sync");syncMulticast.setReferenceCounted(false);syncMulticast.acquire();}}catch(RuntimeException ignored){syncMulticast=null;}
         StringBuilder where=new StringBuilder();if(addresses.isEmpty())where.append("(같은 네트워크에 연결되어 있지 않습니다)");else for(String a:addresses){if(where.length()>0)where.append("\n        ");where.append(a).append(":").append(sync.port());}
         new AlertDialog.Builder(this).setTitle("다른 기기와 동기화")
-            .setMessage("같은 네트워크(Wi-Fi · 핫스팟 · USB 테더링)에 연결된 PC 앱(HDnotes for Windows)의 ‘기기 동기화’에서 아래 주소와 코드를 입력하세요. 주소가 여러 개면 PC에서 연결되는 주소를 쓰세요. 보낼 문서와 방향은 PC 앱에서 고릅니다.\n\n주소  "+where+"\n코드  "+sync.code()+"\n\n· 선택한 문서의 PDF·노트·이미지·녹음이 통째로 덮어써집니다.\n· 이 앱에서 열려 있는 문서는 덮어쓸 수 없으니 닫아 두세요.\n· 이 창을 닫으면 동기화가 끝납니다.")
+            .setMessage("같은 네트워크(Wi-Fi · 핫스팟 · USB 테더링)에 연결된 PC 앱(HDnotes for Windows)에서 ‘기기 동기화’를 여세요. PC가 이 휴대폰을 자동으로 찾으면 아래 코드만 입력하면 됩니다. 찾지 못하면 주소도 입력하세요.\n\n코드  "+sync.code()+"\n주소  "+where+"\n\n· PC는 양쪽에서 바뀐 문서를 비교해 최신 쪽으로 맞춥니다(문서마다 PDF·노트·이미지·녹음 통째).\n· 이 앱에서 열려 있는 문서는 덮어쓸 수 없으니 닫아 두세요.\n· 이 창을 닫으면 동기화가 끝납니다.")
             .setPositiveButton("닫기",null)
-            .setOnDismissListener(d->{sync.stop();if(deviceSync==sync)deviceSync=null;getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);}).show();
+            .setOnDismissListener(d->{sync.stop();if(deviceSync==sync)deviceSync=null;if(syncMulticast!=null){try{syncMulticast.release();}catch(RuntimeException ignored){}syncMulticast=null;}getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);}).show();
     }
     private File recordingsDir(){File dir=new File(getFilesDir(),"recordings");dir.mkdirs();return dir;}
     private void startRecording(){
