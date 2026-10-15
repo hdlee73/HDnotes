@@ -178,8 +178,8 @@ final class LibraryDialog extends Dialog {
     private void selectionMenu(View anchor){
         List<File> files=new ArrayList<>(selected);boolean allFavorite=!files.isEmpty();for(File f:files)if(!repository.favorite(f))allFavorite=false;
         List<AnchoredMenu.Row> rows=new ArrayList<>();
-        if(files.size()==1)rows.add(new AnchoredMenu.Row("이름 변경",R.drawable.ic_rename,()->runSelectionCommand("이름 변경")).tint(0xFF8E8E93));
-        rows.add(new AnchoredMenu.Row("복사본 만들기",R.drawable.ic_copy,()->runSelectionCommand("복사")).tint(0xFF8E8E93));
+        if(files.size()==1)rows.add(new AnchoredMenu.Row("이름 변경",R.drawable.ic_rename,()->runSelectionCommand("이름 변경")).tint(0xFF848487));
+        rows.add(new AnchoredMenu.Row("복사본 만들기",R.drawable.ic_copy,()->runSelectionCommand("복사")).tint(0xFF848487));
         rows.add(new AnchoredMenu.Row(allFavorite?"즐겨찾기 해제":"즐겨찾기에 추가",allFavorite?R.drawable.ic_star:R.drawable.ic_star_outline,()->runSelectionCommand("즐겨찾기")).tint(0xFFF5A623));
         AnchoredMenu.show(activity,anchor,false,rows,null);
     }
@@ -323,7 +323,7 @@ final class LibraryDialog extends Dialog {
         final File target=mode==FOLDER?folder:repository.root;
         AnchoredMenu.showCentered(activity,anchor,"문서 추가",AnchoredMenu.rows(
             new AnchoredMenu.Row("새 노트 만들기",R.drawable.ic_compose,()->actions.newNote(target,this::refresh)).tint(0xFF34C759),
-            new AnchoredMenu.Row("파일 가져오기",R.drawable.ic_import,()->{dismiss();actions.importFiles(target);}).tint(0xFF007AFF),
+            new AnchoredMenu.Row("파일 가져오기",R.drawable.ic_import,()->{dismiss();actions.importFiles(target);}).tint(0xFF387AFF),
             new AnchoredMenu.Row("폴더 만들기",R.drawable.ic_folder_open,()->createFolder(target,()->{tree.reload();refresh();})).tint(0xFFF5A623)));
     }
     private void libraryMenu(View anchor){
@@ -395,7 +395,7 @@ final class LibraryDialog extends Dialog {
     private GradientDrawable round(int color,int radius){GradientDrawable bg=new GradientDrawable();bg.setColor(color);bg.setCornerRadius(dp(radius));return bg;}
     private GradientDrawable roundStroke(int color,int radius,int stroke){GradientDrawable bg=round(color,radius);bg.setStroke(dp(1),stroke);return bg;}
     private GradientDrawable roundTop(int color,int radius){GradientDrawable bg=new GradientDrawable();bg.setColor(color);float r=dp(radius);bg.setCornerRadii(new float[]{r,r,r,r,0,0,0,0});return bg;}
-    private android.graphics.drawable.Drawable pressBackground(){android.graphics.drawable.StateListDrawable states=new android.graphics.drawable.StateListDrawable();states.addState(new int[]{android.R.attr.state_pressed},round(0xFFF2F2F7,12));states.addState(new int[0],new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));return states;}
+    private android.graphics.drawable.Drawable pressBackground(){android.graphics.drawable.StateListDrawable states=new android.graphics.drawable.StateListDrawable();states.addState(new int[]{android.R.attr.state_pressed},round(0xFFF2F2F4,12));states.addState(new int[0],new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));return states;}
     private GradientDrawable dotted(){GradientDrawable line=new GradientDrawable();line.setShape(GradientDrawable.LINE);line.setStroke(dp(2),0xFFAEAEB2,dp(2),dp(5));return line;}
     private int dp(float n){return Math.round(n*activity.getResources().getDisplayMetrics().density);}
 }
