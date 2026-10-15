@@ -7,11 +7,16 @@ android {
     compileSdk 35
 
     defaultConfig {
-        applicationId 'com.hdlee.pdfnote'
+        applicationId 'com.hdlee.hdnotes'
         minSdk 26
         targetSdk 35
-        versionCode 72
-        versionName '1.58.1'
+        versionCode 1
+        versionName '1.0.0'
+        buildConfigField 'String', 'BUILD_DATE', '"' + new java.text.SimpleDateFormat('yyyy-MM-dd').format(new Date()) + '"'
+    }
+
+    buildFeatures {
+        buildConfig true
     }
 
     testOptions {

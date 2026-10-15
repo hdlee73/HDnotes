@@ -77,7 +77,7 @@ jobs:
           if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         with:
-          name: Everynote-debug
+          name: HDnotes-debug
           path: app/build/outputs/apk/debug/app-debug.apk
       - name: Upload unsigned release APK for the signing job
         if: github.event_name != 'pull_request'
@@ -101,31 +101,27 @@ jobs:
         with:
           name: release-unsigned
           path: unsigned
-      - name: Sign release APK (key rotation lineage)
+      - name: Sign release APK
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          SIGNING_LINEAGE_BASE64: ${{ secrets.SIGNING_LINEAGE_BASE64 }}
           EXPECTED_CERT_SHA256: ${{ vars.EXPECTED_CERT_SHA256 }}
         run: |
           set -euo pipefail
-          for v in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD SIGNING_LINEAGE_BASE64; do
-            [ -n "${!v:-}" ] || { echo "::error::Secret $v is not set in the 'release' environment (see SIGNING.md)"; exit 1; }
+          for v in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            [ -n "${!v:-}" ] || { echo "::error::Secret $v is not set (see SIGNING.md)"; exit 1; }
           done
           BT="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)"
-          KS="$RUNNER_TEMP/release.jks"; LIN="$RUNNER_TEMP/lineage.bin"
-          trap 'rm -f "$KS" "$LIN"' EXIT
+          KS="$RUNNER_TEMP/release.jks"
+          trap 'rm -f "$KS"' EXIT
           printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$KS"
-          printf '%s' "$SIGNING_LINEAGE_BASE64" | base64 -d > "$LIN"
           "$BT/zipalign" -f -p 4 unsigned/app-release-unsigned.apk "$RUNNER_TEMP/aligned.apk"
           "$BT/apksigner" sign --ks "$KS" --ks-key-alias "$KEY_ALIAS" \
             --ks-pass env:KEYSTORE_PASSWORD --key-pass env:KEY_PASSWORD \
-            --v1-signing-enabled false --v2-signing-enabled false --v3-signing-enabled true --min-sdk-version 28 --rotation-min-sdk-version 28 --lineage "$LIN" --out signed.apk "$RUNNER_TEMP/aligned.apk"
-          "$BT/apksigner" verify --verbose --print-certs --min-sdk-version 28 signed.apk | tee verify.txt
-          grep -q 'Verified using v3 scheme (APK Signature Scheme v3): true' verify.txt \
-            || { echo "::error::signed APK has no valid v3 signature (rotation lineage missing)"; exit 1; }
+            --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true --out signed.apk "$RUNNER_TEMP/aligned.apk"
+          "$BT/apksigner" verify --verbose --print-certs signed.apk | tee verify.txt
           if [ -n "${EXPECTED_CERT_SHA256:-}" ]; then
             want="$(printf '%s' "$EXPECTED_CERT_SHA256" | tr -d ': ' | tr 'A-F' 'a-f')"
             grep -qi "certificate SHA-256 digest: $want" verify.txt \
@@ -140,10 +136,10 @@ jobs:
           else
             VERSION="v$(sed -n "s/.*versionName '\([^']*\)'.*/\1/p" app/build.gradle)"
           fi
-          cp signed.apk "Everynote-$VERSION.apk"
-          sha256sum "Everynote-$VERSION.apk" > "Everynote-$VERSION.apk.sha256"
+          cp signed.apk "HDnotes-$VERSION.apk"
+          sha256sum "HDnotes-$VERSION.apk" > "HDnotes-$VERSION.apk.sha256"
           if gh release view "$VERSION" >/dev/null 2>&1; then
-            gh release upload "$VERSION" "Everynote-$VERSION.apk" "Everynote-$VERSION.apk.sha256" --clobber
+            gh release upload "$VERSION" "HDnotes-$VERSION.apk" "HDnotes-$VERSION.apk.sha256" --clobber
           else
-            gh release create "$VERSION" "Everynote-$VERSION.apk" "Everynote-$VERSION.apk.sha256" --title "Everynote $VERSION" --notes-file RELEASE_NOTES.md --target "$GITHUB_SHA"
+            gh release create "$VERSION" "HDnotes-$VERSION.apk" "HDnotes-$VERSION.apk.sha256" --title "HDnotes $VERSION" --notes-file RELEASE_NOTES.md --target "$GITHUB_SHA"
           fi

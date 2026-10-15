@@ -572,7 +572,7 @@ public class MainActivity extends Activity implements PdfPageView.Listener {
         if(doc)shortcuts.add(new AnchoredMenu.Shortcut("즐겨찾기",store.bookmarks.contains(currentPage)?R.drawable.ic_star:R.drawable.ic_star_outline,store.bookmarks.contains(currentPage),this::toggleBookmark));
         AnchoredMenu.show(this,anchor,above,rows,shortcuts);
     }
-    private void showWelcome(){if(writeMode){writeMode=false;updateWriteStrip();}previousOverlay.setVisibility(View.GONE);nextOverlay.setVisibility(View.GONE);titleView.setText("Everynote");pageLabel.setText("문서 열기");}
+    private void showWelcome(){if(writeMode){writeMode=false;updateWriteStrip();}previousOverlay.setVisibility(View.GONE);nextOverlay.setVisibility(View.GONE);titleView.setText("HDnotes");pageLabel.setText("문서 열기");}
     private void saveSessionState(){if(restoringSessions||!importing.isEmpty())return;try{JSONArray a=new JSONArray();for(DocumentSession s:sessions)a.put(new JSONObject().put("uri",s.uri.toString()).put("page",s==activeSession?currentPage:s.page).put("text_only",s.officePreview!=null));recentPrefs.edit().putString("open_sessions",a.toString()).putString("active_uri",activeSession==null?"":activeSession.uri.toString()).apply();}catch(JSONException ignored){}}
     private boolean restoreSession(){
         String raw=recentPrefs.getString("open_sessions",null);if(raw==null)return false;
@@ -671,7 +671,7 @@ public class MainActivity extends Activity implements PdfPageView.Listener {
     private void offerOfficeImport(Uri uri,String name){
         boolean textPreview=OfficeImporter.isOffice(name);
         AlertDialog.Builder dialog=new AlertDialog.Builder(this).setTitle(name)
-            .setMessage("원본 서식·표·그림은 설치된 문서 앱에서 확인할 수 있습니다. 해당 앱에서 PDF로 내보낸 뒤 다시 가져오면 Everynote에서 필기와 주석을 사용할 수 있습니다.")
+            .setMessage("원본 서식·표·그림은 설치된 문서 앱에서 확인할 수 있습니다. 해당 앱에서 PDF로 내보낸 뒤 다시 가져오면 HDnotes에서 필기와 주석을 사용할 수 있습니다.")
             .setPositiveButton("원본 보기",(d,w)->openOfficeOriginal(uri,name))
             .setNegativeButton("PDF 가져오기",(d,w)->chooseConvertedPdf());
         if(textPreview)dialog.setNeutralButton("본문만 미리보기",(d,w)->openOfficeText(uri));
@@ -1371,9 +1371,9 @@ public class MainActivity extends Activity implements PdfPageView.Listener {
                 file=new File(directory,UUID.randomUUID()+".png");try(OutputStream out=new FileOutputStream(file)){if(!image.compress(Bitmap.CompressFormat.PNG,100,out))throw new IOException("PNG 저장 실패");}
                 final File ready=file;
                 runOnUiThread(()->{if(isFinishing()||isDestroyed())return;Uri uri=CaptureProvider.uri(this,ready);
-                    if(action==0){ClipboardManager clipboard=(ClipboardManager)getSystemService(CLIPBOARD_SERVICE);clipboard.setPrimaryClip(ClipData.newUri(getContentResolver(),"Everynote 영역 캡처",uri));toast("이미지를 복사했습니다. 이미지 붙여넣기를 지원하는 앱에서 사용하세요");}
+                    if(action==0){ClipboardManager clipboard=(ClipboardManager)getSystemService(CLIPBOARD_SERVICE);clipboard.setPrimaryClip(ClipData.newUri(getContentResolver(),"HDnotes 영역 캡처",uri));toast("이미지를 복사했습니다. 이미지 붙여넣기를 지원하는 앱에서 사용하세요");}
                     else if(action==1){pendingCaptureExport=ready;Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("image/png").putExtra(Intent.EXTRA_TITLE,title.replaceAll("(?i)\\.pdf$","")+"_p"+(page+1)+"_capture.png");startActivityForResult(intent,EXPORT_CAPTURE);}
-                    else{Intent intent=new Intent(Intent.ACTION_SEND).setType("image/png").putExtra(Intent.EXTRA_STREAM,uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);intent.setClipData(ClipData.newUri(getContentResolver(),"Everynote 캡처",uri));try{startActivity(Intent.createChooser(intent,"캡처 이미지 공유"));}catch(ActivityNotFoundException error){toast("이미지를 받을 앱이 없습니다");}}
+                    else{Intent intent=new Intent(Intent.ACTION_SEND).setType("image/png").putExtra(Intent.EXTRA_STREAM,uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);intent.setClipData(ClipData.newUri(getContentResolver(),"HDnotes 캡처",uri));try{startActivity(Intent.createChooser(intent,"캡처 이미지 공유"));}catch(ActivityNotFoundException error){toast("이미지를 받을 앱이 없습니다");}}
                 });
             }catch(Exception error){if(file!=null)file.delete();runOnUiThread(()->toast("캡처 실패: "+error.getMessage()));}
             finally{image.recycle();}
@@ -3063,7 +3063,7 @@ public class MainActivity extends Activity implements PdfPageView.Listener {
         deviceSync=sync;getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         StringBuilder where=new StringBuilder();if(addresses.isEmpty())where.append("(같은 네트워크에 연결되어 있지 않습니다)");else for(String a:addresses){if(where.length()>0)where.append("\n        ");where.append(a).append(":").append(sync.port());}
         new AlertDialog.Builder(this).setTitle("다른 기기와 동기화")
-            .setMessage("같은 네트워크(Wi-Fi · 핫스팟 · USB 테더링)에 연결된 PC 앱(Everynote for Windows)의 ‘기기 동기화’에서 아래 주소와 코드를 입력하세요. 주소가 여러 개면 PC에서 연결되는 주소를 쓰세요. 보낼 문서와 방향은 PC 앱에서 고릅니다.\n\n주소  "+where+"\n코드  "+sync.code()+"\n\n· 선택한 문서의 PDF·노트·이미지·녹음이 통째로 덮어써집니다.\n· 이 앱에서 열려 있는 문서는 덮어쓸 수 없으니 닫아 두세요.\n· 이 창을 닫으면 동기화가 끝납니다.")
+            .setMessage("같은 네트워크(Wi-Fi · 핫스팟 · USB 테더링)에 연결된 PC 앱(HDnotes for Windows)의 ‘기기 동기화’에서 아래 주소와 코드를 입력하세요. 주소가 여러 개면 PC에서 연결되는 주소를 쓰세요. 보낼 문서와 방향은 PC 앱에서 고릅니다.\n\n주소  "+where+"\n코드  "+sync.code()+"\n\n· 선택한 문서의 PDF·노트·이미지·녹음이 통째로 덮어써집니다.\n· 이 앱에서 열려 있는 문서는 덮어쓸 수 없으니 닫아 두세요.\n· 이 창을 닫으면 동기화가 끝납니다.")
             .setPositiveButton("닫기",null)
             .setOnDismissListener(d->{sync.stop();if(deviceSync==sync)deviceSync=null;getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);}).show();
     }
@@ -3346,8 +3346,8 @@ public class MainActivity extends Activity implements PdfPageView.Listener {
          "내보내기·백업|더보기 메뉴에서 기록이 포함된 PDF를 내보내거나, ‘원본 파일 내보내기’로 기록 없는 원본만 저장하거나, 기록을 파일로 백업·복원합니다. ‘인쇄’는 필기와 글상자까지 함께 시스템 인쇄 화면으로 보내며, 거기서 PDF로 저장할 수도 있습니다."}};
     // ---- whole-library backup / restore and app info / update check
     private static final int EXPORT_BACKUP=35,IMPORT_BACKUP=36;
-    private static final String RELEASES_URL="https://github.com/hdlee73/Everynote_And/releases";
-    private static final String AUTHOR_LINE="만든이 : 이현덕(with Claude), hdlee73@gmail.com";
+    private static final String RELEASES_URL="https://github.com/hdlee73/HDnotes/releases";
+    private static final String AUTHOR_LINE="만든이 : 이현덕(hdlee73@gmail.com)";
     private File[] backupAssetDirs(){File img=new File(getFilesDir(),"images");img.mkdirs();File vid=new File(getFilesDir(),"videos");vid.mkdirs();return new File[]{img,recordingsDir(),vid};}
     private File backupScope;
     private void startLibraryBackup(){startFolderBackup(library.root);}
@@ -3356,7 +3356,7 @@ public class MainActivity extends Activity implements PdfPageView.Listener {
         backupScope=folder==null||folder.equals(library.root)?null:folder;
         String name=backupScope==null?"백업":backupScope.getName()+"-백업";
         Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("application/zip");
-        i.putExtra(Intent.EXTRA_TITLE,"Everynote-"+name+"-"+new java.text.SimpleDateFormat("yyyyMMdd-HHmm",Locale.US).format(new Date())+".zip");startActivityForResult(i,EXPORT_BACKUP);
+        i.putExtra(Intent.EXTRA_TITLE,"HDnotes-"+name+"-"+new java.text.SimpleDateFormat("yyyyMMdd-HHmm",Locale.US).format(new Date())+".zip");startActivityForResult(i,EXPORT_BACKUP);
     }
     private void receiveBackupExport(int result,Intent data){
         final File scope=backupScope;backupScope=null;if(result!=RESULT_OK||data==null||data.getData()==null)return;final Uri target=data.getData();commitInlineText();toast(scope==null?"전체 문서를 백업하는 중… 잠시 기다려 주세요":"‘"+scope.getName()+"’ 폴더를 백업하는 중… 잠시 기다려 주세요");
@@ -3378,7 +3378,7 @@ public class MainActivity extends Activity implements PdfPageView.Listener {
     }
     private void showAbout(){
         LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);box.setPadding(dp(22),dp(8),dp(22),0);
-        TextView info=new TextView(this);info.setText("Everynote\n버전 "+appVersion()+"\n\n"+AUTHOR_LINE);info.setTextSize(15);info.setTextColor(NAVY);info.setTag("about_info");info.setTextIsSelectable(true);box.addView(info);
+        TextView info=new TextView(this);info.setText("HDnotes\n버전 "+appVersion()+" · 업데이트 "+BuildConfig.BUILD_DATE+"\n\n"+AUTHOR_LINE);info.setTextSize(15);info.setTextColor(NAVY);info.setTag("about_info");info.setTextIsSelectable(true);box.addView(info);
         String cert=CertInfo.current(this);if(!cert.isEmpty()){TextView sig=new TextView(this);sig.setText("서명 인증서 SHA-256\n"+cert);sig.setTextSize(11);sig.setTextColor(0xFF8E8E93);sig.setTag("about_cert");sig.setTextIsSelectable(true);sig.setPadding(0,dp(10),0,0);box.addView(sig);}
         TextView releases=new TextView(this);releases.setText("업데이트 정보 (GitHub 릴리스 페이지)");releases.setTextSize(14);releases.setTextColor(ACCENT);releases.setPaintFlags(releases.getPaintFlags()|Paint.UNDERLINE_TEXT_FLAG);releases.setPadding(0,dp(12),0,dp(2));releases.setTag("about_releases");
         releases.setOnClickListener(v->{try{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse(RELEASES_URL)));}catch(Exception e){toast("브라우저를 열 수 없습니다");}});box.addView(releases);
@@ -3417,14 +3417,14 @@ public class MainActivity extends Activity implements PdfPageView.Listener {
             if(Build.VERSION.SDK_INT>=26)nm.createNotificationChannel(new android.app.NotificationChannel("updates","앱 업데이트",android.app.NotificationManager.IMPORTANCE_DEFAULT));
             android.app.PendingIntent tap=android.app.PendingIntent.getActivity(this,0,new Intent(Intent.ACTION_VIEW,Uri.parse(UpdateChecker.isTrustedUrl(r.url)?r.url:UpdateChecker.RELEASES_PAGE)),android.app.PendingIntent.FLAG_IMMUTABLE|android.app.PendingIntent.FLAG_UPDATE_CURRENT);
             android.app.Notification.Builder b=Build.VERSION.SDK_INT>=26?new android.app.Notification.Builder(this,"updates"):new android.app.Notification.Builder(this);
-            b.setSmallIcon(getApplicationInfo().icon).setContentTitle("Everynote 새 버전 v"+r.version).setContentText("눌러서 업데이트를 내려받으세요").setContentIntent(tap).setAutoCancel(true);
+            b.setSmallIcon(getApplicationInfo().icon).setContentTitle("HDnotes 새 버전 v"+r.version).setContentText("눌러서 업데이트를 내려받으세요").setContentIntent(tap).setAutoCancel(true);
             nm.notify(7001,b.build());
         }catch(Exception ignored){}
     }
     private void showHelp(){
         final Dialog dialog=new Dialog(this,R.style.SheetDialog);
         LinearLayout card=new LinearLayout(this);card.setOrientation(LinearLayout.VERTICAL);card.setBackground(round(Color.WHITE,20));card.setPadding(dp(22),dp(20),dp(22),dp(6));
-        TextView title=new TextView(this);title.setText("Everynote 사용법");title.setTextSize(21);title.setTextColor(NAVY);title.setTypeface(Typeface.DEFAULT_BOLD);title.setGravity(Gravity.START);card.addView(title,new LinearLayout.LayoutParams(-1,-2));
+        TextView title=new TextView(this);title.setText("HDnotes 사용법");title.setTextSize(21);title.setTextColor(NAVY);title.setTypeface(Typeface.DEFAULT_BOLD);title.setGravity(Gravity.START);card.addView(title,new LinearLayout.LayoutParams(-1,-2));
         TextView version=new TextView(this);version.setText("버전 "+appVersion());version.setTextSize(13);version.setTextColor(0xFF8E8E93);version.setGravity(Gravity.START);version.setPadding(0,dp(2),0,dp(8));card.addView(version,new LinearLayout.LayoutParams(-1,-2));
         LinearLayout body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);
         for(String[] section:HELP){
