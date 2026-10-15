@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 /** Document shelf laid out like Samsung Notes: navigation pane (docked on wide screens, a drawer on phones) with
- *  모든 노트 · 즐겨찾기 · 최근 노트 · 휴지통 · 폴더 tree · 설정, a left-aligned title with labelled actions, and a card grid. */
+ *  모든 노트 · 즐겨찾기 · 최근 문서 · 휴지통 · 폴더 tree · 설정, a left-aligned title with labelled actions, and a card grid. */
 final class LibraryDialog extends Dialog {
     interface Actions {
         void open(File file);
@@ -35,7 +35,7 @@ final class LibraryDialog extends Dialog {
         default void restoreBackup(){}
     }
     private static final int ALL=0,FAVORITES=1,RECENT=2,FOLDER=3,TRASH=4;
-    private static final String[] NAV_NAMES={"모든 노트","즐겨찾기","최근 노트","휴지통"};
+    private static final String[] NAV_NAMES={"모든 노트","즐겨찾기","최근 문서","휴지통"};
     private static final int INK=0xFF010102,MUTED=0xFF848487,ACCENT=0xFF387AFF,ACTIVE_BG=0xFFE6E6E9,SURFACE=0xFFFCFCFC,NAV_BG=0xFFF3F3F5,FIELD_BG=0xFFECECEE,RED=0xFFDB332A;
     private final Activity activity;
     private final LibraryRepository repository;
@@ -201,7 +201,7 @@ final class LibraryDialog extends Dialog {
         else drawerPanel=new View(activity);
         content.addView(drawer,new FrameLayout.LayoutParams(-1,-1));
     }
-    /** 모든 노트 · 즐겨찾기 · 최근 노트 · 휴지통 ┄ 폴더 (tree with counts) ┄ 설정 — shared by the docked pane and the phone drawer. */
+    /** 모든 노트 · 즐겨찾기 · 최근 문서 · 휴지통 ┄ 폴더 (tree with counts) ┄ 설정 — shared by the docked pane and the phone drawer. */
     private LinearLayout buildNavPanel(boolean docked){
         LinearLayout panel=new LinearLayout(activity);panel.setOrientation(LinearLayout.VERTICAL);panel.setPadding(dp(8),dp(10),dp(8),dp(10));
         LinearLayout top=new LinearLayout(activity);top.setGravity(Gravity.CENTER_VERTICAL);top.addView(icon(R.drawable.ic_menu,docked?"폴더 트리 보기":"폴더 트리 닫기",v->{if(docked)toggleNavCollapsed();else closeDrawer();}),new LinearLayout.LayoutParams(dp(48),dp(48)));panel.addView(top,new LinearLayout.LayoutParams(-1,dp(52)));
@@ -210,7 +210,6 @@ final class LibraryDialog extends Dialog {
         panel.addView(dashes(),dashParams());
         panel.addView(drawerRow(R.drawable.ic_folder_check,"폴더","drawer_count:4",v->selectFolder(repository.root)),new LinearLayout.LayoutParams(-1,dp(46)));
         tree=new FolderTreeView(activity,repository,folder,this::selectFolder,false);tree.setFolderMenu(this::folderMenu);tree.setBackgroundColor(Color.TRANSPARENT);panel.addView(tree,new LinearLayout.LayoutParams(-1,0,1));
-        View manage=drawerRow(R.drawable.ic_plus,"폴더 관리",null,this::folderManageMenu);manage.setTag("nav_tree_only");panel.addView(manage,new LinearLayout.LayoutParams(-1,dp(44)));
         panel.addView(dashes(),dashParams());
         panel.addView(drawerRow(R.drawable.ic_settings,"설정","drawer_count:5",v->{closeDrawer();actions.settings();}),new LinearLayout.LayoutParams(-1,dp(46)));
         return panel;
@@ -356,7 +355,6 @@ final class LibraryDialog extends Dialog {
     /** Reloads the folder tree and the list (after documents were restored). */
     void reload(){if(tree!=null)tree.reload();refresh();}
     private void folderMenu(File target,View anchor){PopupMenu menu=new PopupMenu(activity,anchor);menu.getMenu().add("폴더 색상");menu.getMenu().add("하위 폴더 만들기");menu.getMenu().add("이 폴더 백업");menu.setOnMenuItemClickListener(item->{if(item.getTitle().equals("폴더 색상"))chooseFolderColor(target);else if(item.getTitle().equals("이 폴더 백업"))actions.backupFolder(target);else createFolder(target,()->{tree.reload();refresh();});return true;});menu.show();}
-    private void folderManageMenu(View anchor){PopupMenu menu=new PopupMenu(activity,anchor);menu.getMenu().add("폴더 만들기");menu.getMenu().add("선택한 폴더 색상");menu.setOnMenuItemClickListener(item->{File target=tree.selected();if(item.getTitle().equals("폴더 만들기"))createFolder(target,()->{tree.reload();refresh();});else chooseFolderColor(target);return true;});menu.show();}
     private void chooseFolderColor(File target){int current=0;for(int i=0;i<LibraryRepository.FOLDER_COLORS.length;i++)if(LibraryRepository.FOLDER_COLORS[i]==repository.folderColor(target))current=i;
         new AlertDialog.Builder(activity).setTitle("폴더 색상 · "+(target.equals(repository.root)?"문서함":target.getName())).setSingleChoiceItems(LibraryRepository.FOLDER_COLOR_NAMES,current,(d,index)->{repository.folderColor(target,LibraryRepository.FOLDER_COLORS[index]);d.dismiss();tree.reload();refreshGrid();}).setNegativeButton("취소",null).show();}
     private void share(List<File> files){

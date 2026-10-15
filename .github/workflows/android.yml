@@ -71,7 +71,7 @@ jobs:
         run: |
           python3 - <<'PY'
           import base64,glob,os
-          for f in sorted(glob.glob('app/build/test-screenshots/library-*.png'))+['app/build/test-screenshots/writing-mode.png','app/build/test-screenshots/reading-toolbar.png']:
+          for f in sorted(glob.glob('app/build/test-screenshots/library-*.png'))+['app/build/test-screenshots/editor-wide.png','app/build/test-screenshots/writing-mode.png','app/build/test-screenshots/reading-toolbar.png']:
               if not os.path.exists(f): continue
               data=base64.b64encode(open(f,'rb').read()).decode()
               print('=== SHOT %s %d ==='%(os.path.basename(f),len(data)))
