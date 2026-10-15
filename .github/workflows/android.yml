@@ -66,6 +66,18 @@ jobs:
                       print('::error title=%s.%s::%s'%(case.get('classname').split('.')[-1],case.get('name'),msg[:1200]))
           print('failing tests: %d'%n)
           PY
+      - name: Print review screenshots (base64, for reviewers without artifact access)
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import base64,glob,os
+          for f in sorted(glob.glob('app/build/test-screenshots/library-*.png'))+['app/build/test-screenshots/writing-mode.png','app/build/test-screenshots/reading-toolbar.png']:
+              if not os.path.exists(f): continue
+              data=base64.b64encode(open(f,'rb').read()).decode()
+              print('=== SHOT %s %d ==='%(os.path.basename(f),len(data)))
+              for i in range(0,len(data),8000): print(data[i:i+8000])
+              print('=== END SHOT ===')
+          PY
       - name: Upload selection test results
         if: always()
         uses: actions/upload-artifact@v4
