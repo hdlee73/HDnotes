@@ -99,9 +99,9 @@ final class LibraryBackup {
         Result r = new Result();
         try (ZipInputStream z = new ZipInputStream(new BufferedInputStream(in))) {
             ZipEntry e = z.getNextEntry();
-            if (e == null || !MANIFEST.equals(e.getName())) throw new IOException("Everynote 백업 파일이 아닙니다");
+            if (e == null || !MANIFEST.equals(e.getName())) throw new IOException("HDnotes 백업 파일이 아닙니다");
             JSONObject m = new JSONObject(readText(z, 32 * 1024 * 1024));
-            if (!FORMAT.equals(m.optString("format"))) throw new IOException("Everynote 백업 파일이 아닙니다");
+            if (!FORMAT.equals(m.optString("format"))) throw new IOException("HDnotes 백업 파일이 아닙니다");
             JSONArray fa = m.optJSONArray("folders"), da = m.optJSONArray("documents");
             if (fa != null) for (int i = 0; i < fa.length(); i++) {
                 JSONObject o = fa.getJSONObject(i); String rel = o.optString("path");

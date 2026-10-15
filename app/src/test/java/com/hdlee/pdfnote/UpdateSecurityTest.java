@@ -5,14 +5,14 @@ import org.junit.Test;
 
 public class UpdateSecurityTest {
     @Test public void onlyThisRepositoryReleaseLinksAreTrusted() {
-        assertTrue(UpdateChecker.isTrustedUrl("https://github.com/hdlee73/Everynote_And/releases/download/v1.57.0/Everynote-v1.57.0.apk"));
+        assertTrue(UpdateChecker.isTrustedUrl("https://github.com/hdlee73/HDnotes/releases/download/v1.57.0/Everynote-v1.57.0.apk"));
         assertTrue(UpdateChecker.isTrustedUrl(UpdateChecker.RELEASES_PAGE));
         assertFalse(UpdateChecker.isTrustedUrl(null));
-        assertFalse(UpdateChecker.isTrustedUrl("http://github.com/hdlee73/Everynote_And/releases"));
-        assertFalse(UpdateChecker.isTrustedUrl("https://github.com/evil/Everynote_And/releases/download/v9/x.apk"));
-        assertFalse(UpdateChecker.isTrustedUrl("https://github.com/hdlee73/Everynote_And/../../evil/x.apk"));
-        assertFalse(UpdateChecker.isTrustedUrl("https://github.com/hdlee73/Everynote_And/@evil.example/x.apk"));
-        assertFalse(UpdateChecker.isTrustedUrl("https://evil.example/https://github.com/hdlee73/Everynote_And/"));
+        assertFalse(UpdateChecker.isTrustedUrl("http://github.com/hdlee73/HDnotes/releases"));
+        assertFalse(UpdateChecker.isTrustedUrl("https://github.com/evil/HDnotes/releases/download/v9/x.apk"));
+        assertFalse(UpdateChecker.isTrustedUrl("https://github.com/hdlee73/HDnotes/../../evil/x.apk"));
+        assertFalse(UpdateChecker.isTrustedUrl("https://github.com/hdlee73/HDnotes/@evil.example/x.apk"));
+        assertFalse(UpdateChecker.isTrustedUrl("https://evil.example/https://github.com/hdlee73/HDnotes/"));
     }
 
     @Test public void certificateFingerprintIsColonSeparatedSha256() {

@@ -8,8 +8,8 @@ import org.json.JSONObject;
 
 /** Looks up the newest published release on GitHub (pre-releases such as the PR test builds are ignored by /releases/latest). */
 final class UpdateChecker {
-    static final String API = "https://api.github.com/repos/hdlee73/Everynote_And/releases/latest";
-    static final String TRUSTED_PREFIX = "https://github.com/hdlee73/Everynote_And/";
+    static final String API = "https://api.github.com/repos/hdlee73/HDnotes/releases/latest";
+    static final String TRUSTED_PREFIX = "https://github.com/hdlee73/HDnotes/";
     static final String RELEASES_PAGE = TRUSTED_PREFIX + "releases";
     static final class Release { String version, url, page, notes; }
 
@@ -31,7 +31,7 @@ final class UpdateChecker {
     /** Blocking; run on a background thread. Returns the latest release (apk url may be null). */
     static Release latest() throws IOException {
         HttpURLConnection c = (HttpURLConnection) new URL(API).openConnection();
-        c.setConnectTimeout(8000); c.setReadTimeout(8000); c.setRequestProperty("Accept", "application/vnd.github+json"); c.setRequestProperty("User-Agent", "Everynote");
+        c.setConnectTimeout(8000); c.setReadTimeout(8000); c.setRequestProperty("Accept", "application/vnd.github+json"); c.setRequestProperty("User-Agent", "HDnotes");
         try {
             if (c.getResponseCode() != 200) throw new IOException("업데이트 서버 응답 " + c.getResponseCode());
             ByteArrayOutputStream o = new ByteArrayOutputStream(); byte[] b = new byte[8192]; int n; try (InputStream in = c.getInputStream()) { while ((n = in.read(b)) > 0) { o.write(b, 0, n); if (o.size() > 2_000_000) break; } }
