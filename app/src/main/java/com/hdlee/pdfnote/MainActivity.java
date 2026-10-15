@@ -3140,7 +3140,7 @@ public class MainActivity extends Activity implements PdfPageView.Listener {
         private void collect(File dir,String prefix,org.json.JSONArray out)throws Exception{
             for(File f:library.list(dir)){String rel=prefix+f.getName();
                 if(f.isDirectory())collect(f,rel+"/",out);
-                else{org.json.JSONObject o=new org.json.JSONObject();o.put("path",rel);o.put("size",f.length());o.put("mtime",Math.max(f.lastModified(),AnnotationStore.modified(MainActivity.this,Uri.fromFile(f))));out.put(o);}}}
+                else{org.json.JSONObject o=new org.json.JSONObject();o.put("path",rel);o.put("size",f.length());o.put("mtime",LibraryRepository.modified(MainActivity.this,f));out.put(o);}}}
         @Override public String listLibrary()throws Exception{org.json.JSONArray out=new org.json.JSONArray();collect(library.root,"",out);return out.toString();}
         @Override public File libraryFile(String rel){
             if(rel==null||rel.isEmpty()||rel.length()>400||rel.startsWith("/")||rel.contains("\\")||rel.contains("\0")||!rel.toLowerCase(java.util.Locale.ROOT).endsWith(".pdf"))return null;
