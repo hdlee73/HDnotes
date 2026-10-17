@@ -2707,14 +2707,14 @@ public class MainActivity extends Activity implements PdfPageView.Listener {
         viewportLayer.addView(inlineEdit,new FrameLayout.LayoutParams(dp(120),-2,Gravity.TOP|Gravity.START));
         inlineMove=inlineHandle("✥","글상자 이동",(dx,dy,page)->{float w=e.right-e.left,h=e.bottom-e.top;float nx=Math.max(0f,Math.min(1f-w,e.left+dx/page.width())),ny=Math.max(0f,Math.min(1f-h,e.top+dy/page.height()));e.left=nx;e.right=nx+w;e.top=ny;e.bottom=ny+h;});
         inlineResize=inlineHandle("↔","글상자 너비",(dx,dy,page)->{e.right=Math.max(e.left+.12f,Math.min(1f,e.right+dx/page.width()));});
-        inlineDelete=new TextView(this);inlineDelete.setText("✕");inlineDelete.setTextSize(14);inlineDelete.setTextColor(Color.WHITE);inlineDelete.setGravity(Gravity.CENTER);inlineDelete.setBackground(round(0xFFEF5B7C,15));inlineDelete.setElevation(dp(3));inlineDelete.setContentDescription("글상자 삭제");inlineDelete.setTag("inline_delete");inlineDelete.setOnClickListener(v->deleteInlineText());viewportLayer.addView(inlineDelete,new FrameLayout.LayoutParams(dp(30),dp(30),Gravity.TOP|Gravity.START));
+        inlineDelete=new TextView(this);inlineDelete.setText("✕");inlineDelete.setTextColor(Color.WHITE);inlineDelete.setGravity(Gravity.CENTER);inlineDelete.setBackground(round(0xFFEF5B7C,15));inlineDelete.setElevation(dp(3));inlineDelete.setContentDescription("글상자 삭제");inlineDelete.setTag("inline_delete");inlineDelete.setOnClickListener(v->deleteInlineText());viewportLayer.addView(inlineDelete,new FrameLayout.LayoutParams(dp(30),dp(30),Gravity.TOP|Gravity.START));
         buildInlineBar(e);applyInlineStyle();positionInlineText();
         inlineTracker=()->{positionInlineText();return true;};viewportLayer.getViewTreeObserver().addOnPreDrawListener(inlineTracker);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);inlineEdit.requestFocus();InputMethodManager keyboard=(InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);if(keyboard!=null)keyboard.showSoftInput(inlineEdit,InputMethodManager.SHOW_IMPLICIT);
     }
     private interface HandleDrag{void moved(float dx,float dy,RectF page);}
     private View inlineHandle(String glyph,String description,HandleDrag drag){
-        TextView handle=new TextView(this);handle.setText(glyph);handle.setTextSize(14);handle.setTextColor(Color.WHITE);handle.setGravity(Gravity.CENTER);handle.setBackground(round(ACCENT,15));handle.setContentDescription(description);handle.setElevation(dp(3));
+        TextView handle=new TextView(this);handle.setText(glyph);handle.setTextColor(Color.WHITE);handle.setGravity(Gravity.CENTER);handle.setBackground(round(ACCENT,15));handle.setContentDescription(description);handle.setElevation(dp(3));
         final float[] last=new float[2];
         handle.setOnTouchListener((v,event)->{
             switch(event.getActionMasked()){
@@ -2735,8 +2735,17 @@ public class MainActivity extends Activity implements PdfPageView.Listener {
         FrameLayout.LayoutParams lp=(FrameLayout.LayoutParams)inlineEdit.getLayoutParams();
         if(lp.leftMargin!=left||lp.topMargin!=top||lp.width!=width){lp.leftMargin=left;lp.topMargin=top;lp.width=width;inlineEdit.setLayoutParams(lp);}
         int editBottom=top+Math.max(dp(18),inlineEdit.getHeight());
-        placeHandle(inlineMove,left-dp(8),top-dp(34));placeHandle(inlineDelete,left+width-dp(22),top-dp(34));placeHandle(inlineResize,left+width-dp(12),editBottom-dp(10));
+        int hs=inlineHandleSize(editBottom-top);sizeHandle(inlineMove,hs);sizeHandle(inlineDelete,hs);sizeHandle(inlineResize,hs);inlineHandlePx=hs;
+        placeHandle(inlineMove,left-hs*4/15,top-hs-dp(4));placeHandle(inlineDelete,left+width-hs*11/15,top-hs-dp(4));placeHandle(inlineResize,left+width-hs*2/5,editBottom-hs/3);
         placeInlineBar(top,editBottom);
+    }
+    /** Move / delete / width buttons scale with the screen (a phone gets smaller ones than a fold's inner screen or a tablet) and shrink further next to a small text box, so they never dwarf the text. */
+    private int inlineHandleSize(int boxHeight){int sw=getResources().getConfiguration().smallestScreenWidthDp;int base=dp(sw<420?22:sw<600?24:26);return Math.max(dp(18),Math.min(base,Math.round(boxHeight*1.2f)));}
+    private int inlineHandlePx;
+    private void sizeHandle(View handle,int size){
+        if(handle==null)return;FrameLayout.LayoutParams lp=(FrameLayout.LayoutParams)handle.getLayoutParams();if(lp.width==size&&lp.height==size)return;
+        lp.width=lp.height=size;handle.setLayoutParams(lp);if(handle instanceof TextView)((TextView)handle).setTextSize(TypedValue.COMPLEX_UNIT_PX,size*.47f);
+        if(handle.getBackground() instanceof GradientDrawable)((GradientDrawable)handle.getBackground()).setCornerRadius(size/2f);
     }
     /** Keeps the toolbar clear of the text being typed: above the box first (the keyboard covers the lower part), else below, else at the top. */
     /** The style bar never wider than the page area (a side panel makes that narrower); smaller widths scroll sideways. */
@@ -2746,11 +2755,11 @@ public class MainActivity extends Activity implements PdfPageView.Listener {
     private void placeInlineBar(int editTop,int editBottom){
         if(inlineBar==null||viewportLayer==null||viewportLayer.getHeight()<=0)return;
         {FrameLayout.LayoutParams wl=(FrameLayout.LayoutParams)inlineBar.getLayoutParams();int bw=inlineBarWidth();if(wl.width!=bw){wl.width=bw;inlineBar.setLayoutParams(wl);}}
-        int barH=inlineBar.getHeight()>0?inlineBar.getHeight():dp(42),H=viewportLayer.getHeight(),gap=dp(4);
+        int barH=inlineBar.getHeight()>0?inlineBar.getHeight():dp(42),H=viewportLayer.getHeight(),gap=dp(4),hs=inlineHandlePx>0?inlineHandlePx:dp(30),above=hs+dp(6),below=hs*2/3;
         FrameLayout.LayoutParams lp=(FrameLayout.LayoutParams)inlineBar.getLayoutParams();
         int topMargin;
-        if(editTop-dp(36)-barH-gap>=dp(2))topMargin=editTop-dp(36)-barH-gap;
-        else if(H-editBottom-dp(14)>=barH+gap)topMargin=editBottom+dp(14)+gap;
+        if(editTop-above-barH-gap>=dp(2))topMargin=editTop-above-barH-gap;
+        else if(H-editBottom-below>=barH+gap)topMargin=editBottom+below+gap;
         else topMargin=dp(4);
         topMargin=Math.max(0,Math.min(topMargin,Math.max(0,H-barH)));
         if(lp.topMargin!=topMargin||(lp.gravity&Gravity.VERTICAL_GRAVITY_MASK)!=Gravity.TOP){lp.gravity=Gravity.TOP|Gravity.CENTER_HORIZONTAL;lp.topMargin=topMargin;lp.bottomMargin=0;inlineBar.setLayoutParams(lp);}
