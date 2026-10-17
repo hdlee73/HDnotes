@@ -84,6 +84,12 @@ public class InlineTextTest {
         activity.onElementTapped(e);View handle=byTag("inline_delete");assertNotNull("글상자 모서리에 삭제 버튼이 있습니다",handle);assertEquals("글상자 삭제",handle.getContentDescription().toString());
         handle.performClick();assertTrue(store.elements.isEmpty());assertNull(byTag("inline_text"));assertNull(byTag("inline_delete"));
     }
+    @Test public void handlesStaySmallOnAPhoneAndNextToSmallText()throws Exception{
+        AnnotationStore.PageElement e=new AnnotationStore.PageElement();e.page=0;e.text="작은 글";e.left=.1f;e.top=.4f;e.right=.6f;e.bottom=.5f;store.elements.add(e);
+        activity.onElementTapped(e);View handle=byTag("inline_delete");assertTrue("휴대폰에서는 버튼이 예전(30dp)보다 작습니다",handle.getLayoutParams().width<=22&&handle.getLayoutParams().width>=18);
+        Method size=MainActivity.class.getDeclaredMethod("inlineHandleSize",int.class);size.setAccessible(true);
+        assertEquals("작은 글상자 옆에서는 최소 크기로 줄어듭니다",18,(int)(Integer)size.invoke(activity,8));assertEquals(22,(int)(Integer)size.invoke(activity,200));
+    }
     @Test public void sidePanelHostsSearchPagesOutlineAndRecordings()throws Exception{
         View side=byTag("side_panel");assertEquals(View.GONE,side.getVisibility());
         invoke("toggleSidebar");assertEquals(View.VISIBLE,side.getVisibility());assertTrue(((TextView)byTag("side_title")).getText().toString().endsWith("미리보기"));assertEquals(View.VISIBLE,byTag("side_more").getVisibility());
