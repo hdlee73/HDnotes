@@ -70,11 +70,41 @@ public class ReadingToolbarTest {
     @Test public void mainMenuIsACompactCardNotAFullSheet()throws Exception{
         View root=field("root");layout(root,360,720);View more=description(root,"도구");assertNotNull(more);more.performClick();
     }
-    @Test public void fullscreenCanAddOutlineWithoutExitingAndReturnsToNormalToolbar()throws Exception{
-        invoke("toggleFullscreen");assertTrue((Boolean)field("fullscreen"));View dock=field("fullscreenDock");assertEquals(View.VISIBLE,dock.getVisibility());assertEquals(View.GONE,((View)field("bottomBar")).getVisibility());
-        description(dock,"전체 화면 개요").performClick();View panelRoot=field("root");View addOutline=panelRoot.findViewWithTag("outline_add");assertNotNull(addOutline);addOutline.performClick();org.robolectric.shadows.ShadowLooper.idleMainLooper();assertTrue("Outline placement starts from the panel", (Boolean)field("outlineMode"));assertTrue((Boolean)field("fullscreen"));
-        activity.onOutlinePointRequested(0,.25f,.5f);AlertDialog editor=(AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();EditText input=findEdit(editor.getWindow().getDecorView());input.setText("중요한 내용");editor.getButton(AlertDialog.BUTTON_POSITIVE).performClick();org.robolectric.shadows.ShadowLooper.idleMainLooper();assertEquals(1,store.outlines.size());assertEquals("중요한 내용",store.outlines.get(0).title);assertEquals(.25f,store.outlines.get(0).x,.001f);assertFalse((Boolean)field("outlineMode"));assertTrue((Boolean)field("fullscreen"));assertEquals(View.VISIBLE,dock.getVisibility());
-        View root=field("root");layout(root,360,720);screenshot(root,"fullscreen-toolbar.png");description(dock,"전체 화면 종료").performClick();assertFalse((Boolean)field("fullscreen"));assertEquals(View.VISIBLE,((View)field("bottomBar")).getVisibility());assertEquals(View.GONE,dock.getVisibility());
+    @Test public void fullscreenKeepsTheToolStripLikeWindowsAndLeavesFromTheRoundButton()throws Exception{
+        View root=field("root");View header=field("header"),tabs=field("tabStrip"),bar=field("bottomBar");View exit=root.findViewWithTag("fullscreen_exit");
+        assertEquals("전체 화면 밖에서는 종료 단추가 없습니다",View.GONE,exit.getVisibility());
+        invoke("toggleFullscreen");assertTrue((Boolean)field("fullscreen"));
+        assertEquals("상단 막대는 숨습니다",View.GONE,header.getVisibility());assertEquals("탭 줄은 숨습니다",View.GONE,tabs.getVisibility());
+        assertEquals("도구 모음은 전체 화면에서도 그대로 있습니다",View.VISIBLE,bar.getVisibility());assertEquals(View.VISIBLE,exit.getVisibility());
+        for(String name:new String[]{"키보드 · 타이핑","펜","형광펜","지우개","올가미 선택","실행 취소","다시 실행","메모","도형","도구 모음 위치·방향"})assertNotNull("전체 화면 도구 모음: "+name,description(bar,name));
+        assertNull("전체 화면 전용 도구 줄은 없어졌습니다",root.findViewWithTag("fullscreen_toolbar"));
+        invoke("showOutlineList");View addOutline=root.findViewWithTag("outline_add");assertNotNull(addOutline);addOutline.performClick();org.robolectric.shadows.ShadowLooper.idleMainLooper();assertTrue("개요 추가는 전체 화면에서 바로 됩니다",(Boolean)field("outlineMode"));assertTrue((Boolean)field("fullscreen"));
+        layout(root,360,720);screenshot(root,"fullscreen-toolbar.png");
+        exit.performClick();assertFalse((Boolean)field("fullscreen"));assertEquals(View.VISIBLE,header.getVisibility());assertEquals(View.VISIBLE,tabs.getVisibility());assertEquals(View.VISIBLE,bar.getVisibility());assertEquals(View.GONE,exit.getVisibility());
+    }
+    @Test @Config(qualifiers="w1280dp-h800dp-mdpi") public void theStripHandleDragsTheToolStripToAnEdgeLikeSamsungNotes()throws Exception{
+        View root=field("root");layout(root,1280,800);org.robolectric.shadows.ShadowLooper.idleMainLooper();layout(root,1280,800);
+        View work=root.findViewWithTag("work_row");View bar=field("bottomBar");
+        assertSame("처음에는 오른쪽 세로 도구 모음",work,bar.getParent());assertEquals(((ViewGroup)work).getChildCount()-1,((ViewGroup)work).indexOfChild(bar));
+        dragHandle(root,20,400);layout(root,1280,800);
+        assertEquals("왼쪽 끝에 놓으면 왼쪽에 붙습니다","left",prefs().getString("bar_place",null));assertSame(work,bar.getParent());assertEquals(0,((ViewGroup)work).indexOfChild(bar));
+        assertNull("끌기가 끝나면 끌던 그림은 사라집니다",root.findViewWithTag("bar_drag_ghost"));assertNull(root.findViewWithTag("bar_drop_zone"));assertEquals(1f,bar.getAlpha(),.001f);
+        dragHandle(root,640,300);layout(root,1280,800);
+        assertEquals("가운데에 놓으면 화면 위에 떠 있습니다","float",prefs().getString("bar_place",null));assertSame(root,bar.getParent());assertTrue("세로 방향은 그대로",prefs().getBoolean("bar_vertical",false));
+        dragHandle(root,640,790);layout(root,1280,800);
+        assertEquals("아래 끝에 놓으면 아래에 붙습니다","bottom",prefs().getString("bar_place",null));assertEquals(LinearLayout.HORIZONTAL,((LinearLayout)bar).getOrientation());
+        dragHandle(root,1270,400);layout(root,1280,800);assertEquals("오른쪽 끝에 놓으면 다시 오른쪽에 붙습니다","right",prefs().getString("bar_place",null));
+        View handle=root.findViewWithTag("bar_layout");int[] at=new int[2];handle.getLocationInWindow(at);float x=at[0]+handle.getWidth()/2f,y=at[1]+handle.getHeight()/2f;
+        touch(handle,MotionEvent.ACTION_DOWN,x,y);touch(handle,MotionEvent.ACTION_UP,x,y);
+        assertEquals("짧게 누르면 위치 메뉴만 열리고 자리는 그대로입니다","right",prefs().getString("bar_place",null));
+    }
+    private android.content.SharedPreferences prefs()throws Exception{return field("recentPrefs");}
+    private static void touch(View v,int action,float x,float y){MotionEvent e=MotionEvent.obtain(0,0,action,x,y,0);v.dispatchTouchEvent(e);e.recycle();}
+    /** Grabs the ⠿ handle of the tool strip and drags it to (x, y) in the window. */
+    private void dragHandle(View root,float x,float y){
+        View handle=root.findViewWithTag("bar_layout");int[] at=new int[2];handle.getLocationInWindow(at);float x0=at[0]+handle.getWidth()/2f,y0=at[1]+handle.getHeight()/2f;
+        touch(handle,MotionEvent.ACTION_DOWN,x0,y0);touch(handle,MotionEvent.ACTION_MOVE,(x0+x)/2,(y0+y)/2);assertNotNull("끄는 동안 도구 모음 그림이 손가락을 따라옵니다",root.findViewWithTag("bar_drag_ghost"));
+        touch(handle,MotionEvent.ACTION_MOVE,x,y);touch(handle,MotionEvent.ACTION_UP,x,y);
     }
     @Test public void longTabNamesStayAtTheirBeginningWithEndEllipsis()throws Exception{
         Class<?> type=Class.forName("com.hdlee.pdfnote.MainActivity$DocumentSession");Constructor<?> ctor=type.getDeclaredConstructor();ctor.setAccessible(true);Object session=ctor.newInstance();Field title=type.getDeclaredField("title");title.setAccessible(true);String filename="Beginning_of_a_very_long_document_name_2026.pdf";title.set(session,filename);Field uri=type.getDeclaredField("uri");uri.setAccessible(true);uri.set(session,Uri.parse("content://tabs/document.pdf"));
