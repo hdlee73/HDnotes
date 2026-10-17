@@ -3536,7 +3536,7 @@ public class MainActivity extends Activity implements PdfPageView.Listener {
             if(Build.VERSION.SDK_INT>=26)nm.createNotificationChannel(new android.app.NotificationChannel("updates","앱 업데이트",android.app.NotificationManager.IMPORTANCE_DEFAULT));
             android.app.PendingIntent tap=android.app.PendingIntent.getActivity(this,0,new Intent(Intent.ACTION_VIEW,Uri.parse(UpdateChecker.isTrustedUrl(r.url)?r.url:UpdateChecker.RELEASES_PAGE)),android.app.PendingIntent.FLAG_IMMUTABLE|android.app.PendingIntent.FLAG_UPDATE_CURRENT);
             android.app.Notification.Builder b=Build.VERSION.SDK_INT>=26?new android.app.Notification.Builder(this,"updates"):new android.app.Notification.Builder(this);
-            b.setSmallIcon(getApplicationInfo().icon).setContentTitle("HDnotes 새 버전 v"+r.version).setContentText("눌러서 업데이트를 내려받으세요").setContentIntent(tap).setAutoCancel(true);
+            b.setSmallIcon(R.drawable.ic_stat_hdnotes).setContentTitle("HDnotes 새 버전 v"+r.version).setContentText("눌러서 업데이트를 내려받으세요").setContentIntent(tap).setAutoCancel(true);
             nm.notify(7001,b.build());
         }catch(Exception ignored){}
     }
